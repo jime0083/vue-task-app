@@ -9,8 +9,15 @@
 </template>
 
 <script>
+import { mapActions } from 'vuex';
+
 export default {
-  name: 'App'
+  methods: {
+    ...mapActions(['fetchTasks'])
+  },
+  created() {
+    this.fetchTasks();
+  }
 };
 </script>
 
