@@ -1,29 +1,18 @@
 <template>
-  <div id="app">
-    <nav>
-      <router-link to="/">ホーム</router-link>
-      <router-link to="/tasks">タスク一覧</router-link>
-    </nav>
-    <router-view />
+  <div>
+    <TaskForm />
+    <TaskList />
   </div>
 </template>
 
 <script>
-import { mapActions } from 'vuex';
+import TaskForm from './components/TaskForm.vue';
+import TaskList from './components/TaskList.vue';
 
 export default {
-  methods: {
-    ...mapActions(['fetchTasks'])
-  },
-  created() {
-    this.fetchTasks();
+  components: {
+    TaskForm,
+    TaskList
   }
 };
 </script>
-
-<style>
-nav {
-  display: flex;
-  gap: 10px;
-}
-</style>
