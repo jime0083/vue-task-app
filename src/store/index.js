@@ -1,35 +1,39 @@
 import { createStore } from 'vuex';
+import { createStore } from 'vue';
 import { db } from '../firebase';
-import { collection, getDocs, addDoc, deleteDoc, doc } from 'firebase/firestore';
+import { collection, onSnapshot } from 'firebase/firestore';
 
-export default createStore({
+export default {
   state: {
-    tasks: []
+    tasks: [],
+    error: null,
+    loading: false
   },
   mutations: {
     setTasks(state, tasks) {
       state.tasks = tasks;
     },
-    addTask(state, task) {
-      state.tasks.push(task);
+    setError(state, error) {
+      state.error = error;
     },
-    removeTask(state, taskId) {
-      state.tasks = state.tasks.filter(task => task.id !== taskId);
+    setLoading(state, loading) {
+      state.loading = loading;
     }
   },
   actions: {
     async fetchTasks({ commit }) {
-      const querySnapshot = await getDocs(collection(db, 'tasks'));
-      const tasks = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      commit('setTasks', tasks);
-    },
-    async addTask({ commit }, taskTitle) {
-      const docRef = await addDoc(collection(db, 'tasks'), { title: taskTitle, completed: false });
-      commit('addTask', { id: docRef.id, title: taskTitle, completed: false });
-    },
-    async removeTask({ commit }, taskId) {
-      await deleteDoc(doc(db, 'tasks', taskId));
-      commit('removeTask', taskId);
+      commit('setLoading', true);
+      try {
+        const tasksCollection = collection(db, 'tasks');
+        onSnapshot(tasksCollection, (snapshot) => {
+          const tasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          commit('setTasks', tasks);
+          commit('setLoading', false);
+        });
+      } catch (error) {
+        commit('setError', error.message);
+        commit('setLoading', false);
+      }
     }
   }
-});
+};
