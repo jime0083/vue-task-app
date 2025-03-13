@@ -1,4 +1,6 @@
 import { createStore } from 'vuex';
+import { db } from '../firebase';
+import { collection, getDocs, addDoc, deleteDoc, doc } from 'firebase/firestore';
 
 export default createStore({
   state: {
@@ -16,17 +18,17 @@ export default createStore({
     }
   },
   actions: {
-    fetchTasks({ commit }) {
-      // 後で Firebase Firestore から取得する処理を追加
-      const tasks = [
-        { id: 1, title: 'サンプルタスク', completed: false }
-      ];
+    async fetchTasks({ commit }) {
+      const querySnapshot = await getDocs(collection(db, 'tasks'));
+      const tasks = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       commit('setTasks', tasks);
     },
-    addTask({ commit }, task) {
-      commit('addTask', task);
+    async addTask({ commit }, taskTitle) {
+      const docRef = await addDoc(collection(db, 'tasks'), { title: taskTitle, completed: false });
+      commit('addTask', { id: docRef.id, title: taskTitle, completed: false });
     },
-    removeTask({ commit }, taskId) {
+    async removeTask({ commit }, taskId) {
+      await deleteDoc(doc(db, 'tasks', taskId));
       commit('removeTask', taskId);
     }
   }
